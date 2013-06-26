@@ -51,8 +51,8 @@ function unalwaysontop {
         fi
         
         ALWAYSONTOP="FALSE"
-        
-        # The ${string##substring} is bash for "remove the longest substring that matches"
+       
+	# use some perl to remove the indicator, because I suck at sed 
         PS1=`perl -e '$newps1 = $ENV{"PS1"}; $newps1 =~ s/\Q$ENV{"ALWAYSONTOP_INDICATOR"}//; print $newps1'`
     fi
    
