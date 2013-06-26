@@ -154,6 +154,7 @@ function renavigate {
 
 function alwaysontop_help {
     echo -e "alwaysontop.sh - keep the prompt at the top of the screen."
+    echo -e "Peter Swire - swirepe.com"
     echo -e "Included commands:"
     echo -e "    "
     echo -e "    alwaysontop_help  This screen"
@@ -184,34 +185,5 @@ else
     echo "    "  
     alwaysontop_help
 fi
-
-
-
-
-#   case "$1" in
-#       -h|--help|help)
-#           alwaysontop_help
-#           shift
-#           exit 0
-#           ;;
-#       -a|autotop|--autotop)
-#           shift
-#           autotop
-#           ;;
-#       --alwaysontop)
-#           alwaysontop
-#           shift
-#           ;;
-#       --autoclear)
-#           autoclear
-#           shift
-#           ;;
-#       *)
-#           alwaysontop_help
-#           echo "    "  
-#           autotop
-#           ;;
-#   esac
-
 
 
