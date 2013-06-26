@@ -147,8 +147,13 @@ function cdls {
 function renavigate {
     ## reloads my navigation functions so that they get the new cd alias
     ## or do nothing
+    ## think of the magic that rvm does with your cd function, for example
+
     # source $BASHINCLUDES_DIR/navigation.sh
-    echo "[autotop.sh] renavigate not implemented." > /dev/stderr
+    ## or
+    # echo "[autotop.sh] renavigate not implemented." > /dev/stderr
+    ## or noop
+    :
 }
 
 
