@@ -37,4 +37,5 @@ Source (don't run) the file `alwaysontop.sh`.  Turn it off with unautotop.  From
 	autoclear indicator:    ◎
 
 
-<html><script type="text/javascript" src="http://ascii.io/a/3779.js" id="asciicast-3779" async></script></html>
+
+[ascii.io cast](http://ascii.io/a/3779)
