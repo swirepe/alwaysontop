@@ -121,13 +121,26 @@ function hr {
 function cdls {
     # go into a directory
     # if that succees, print the git status and a horizontal rule (if we are in a git repository)
-    # then print the directory contents
+    # then print the directory contents, abbreviating if necessary
+    # 
+
+    # this ls is a BSD (read: mac osx) thing
+    # -G is for color
+    # -p is for / after directories
+    # -x is for columns
+    # CLICOLOR_FORCE and COLUMNS is for ls
+    DISPLAY_LINES=20
+    LSCMD="CLICOLOR_FORCE=1 COLUMNS=$(tput cols) ls -Gp -x "
     
-    # other things you might want to do: 
-    #    force ls to use color, put it into columns, pipe that into head -n$LINES
-    # the BSD (read: Mac OSX) version of ls is different from the one I use at home, 
-    # so I am just leaving this as ls
-    command cd "$@" && ((git status -bs 2>/dev/null && hr) ; ls  )
+    command cd "$@" && ((git status -bs 2>/dev/null && hr) ; eval $LSCMD | head -n $DISPLAY_LINES ) &&
+    # print a ... if there is more
+    if [[ $( eval $LSCMD | wc -l ) -gt $DISPLAY_LINES ]]
+    then
+        echo "..."
+        eval $LSCMD | tail -n 3
+    fi
+    
+    
 }
 
 
