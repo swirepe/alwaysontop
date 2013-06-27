@@ -131,16 +131,20 @@ function cdls {
     # CLICOLOR_FORCE and COLUMNS is for ls
     DISPLAY_LINES=20
     LSCMD="CLICOLOR_FORCE=1 COLUMNS=$(tput cols) ls -Gp -x "
-    
-    command cd "$@" && ((git status -bs 2>/dev/null && hr) ; eval $LSCMD | head -n $DISPLAY_LINES ) &&
-    # print a ... if there is more
-    if [[ $( eval $LSCMD | wc -l ) -gt $DISPLAY_LINES ]]
-    then
+    DIR="$@"  
+    SCC_CMD=""
+
+    if [ -d $DIR/.git ]; then 
+	SCC_CMD="git status -bs 2>/dev/null"
+    elif [ -d $DIR/.svn ]; then
+	SCC_CMD='svn info | grep "^URL:" 2>/dev/null && svn status'
+    fi
+ 
+    command cd "$DIR" && ((eval $SCC_CMD && hr); eval $LSCMD | head -n $DISPLAY_LINES ) &&  
+    if [[ $( eval $LSCMD | wc -l ) -gt $DISPLAY_LINES ]]; then
         echo "..."
         eval $LSCMD | tail -n 3
     fi
-    
-    
 }
 
 
