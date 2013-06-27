@@ -134,10 +134,13 @@ function cdls {
     DIR="$@"  
     SCC_CMD=""
 
-    if [ -d $DIR/.git ]; then 
-	SCC_CMD="git status -bs 2>/dev/null"
-    elif [ -d $DIR/.svn ]; then
-	SCC_CMD='svn info | grep "^URL:" 2>/dev/null && svn status'
+    git status 2>&1 > /dev/null
+    if [[ $? ]]
+    then 
+	    SCC_CMD="git -c color.status=always status -bs 2>/dev/null"
+    elif [ -d $DIR/.svn ]
+    then
+	    SCC_CMD='svn info | grep "^URL:" 2>/dev/null && svn status'
     fi
  
     command cd "$DIR" && ((eval $SCC_CMD && hr); eval $LSCMD | head -n $DISPLAY_LINES ) &&  
