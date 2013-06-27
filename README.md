@@ -9,7 +9,7 @@ It keeps your bash prompt at the top of the screen.  It also:
 * clears the screen automatically
 * lists the contents of directories upon entering them
 * abbreviates those contents of there would be too many.
-* shows the git status in directories that have one
+* shows the git or svn status in directories that have them
 
 ## Why?
 
