@@ -135,7 +135,10 @@ function cdls {
     
 
     GIT_CMD="git -c color.status=always status -bs 2>/dev/null"
-    SVN_CMD='svn info 2>/dev/null | grep "^URL:" 2>/dev/null && svn status 2>/dev/null'
+    SVN_CMD='[[ -d .svn ]] && (
+        svn info 2>/dev/null | grep "^URL:\|^Revision:" 2>/dev/null && 
+        svn status 2>/dev/null
+    )'
     
     VERSION_STATUS_CMD="(($GIT_CMD) || ($SVN_CMD))"
     
