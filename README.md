@@ -11,6 +11,9 @@ It keeps your bash prompt at the top of the screen.  It also:
 * abbreviates those contents of there would be too many.
 * shows the git or svn status in directories that have them
 
+[ascii.io cast](http://ascii.io/a/3779)
+
+
 ## Why?
 
 I had a pretty long train commute, and I found that at the end of it, my neck would hurt from hunching.
@@ -39,3 +42,9 @@ Source (don't run) the file `alwaysontop.sh`.  Turn it off with unautotop.  From
 
 
 [ascii.io cast](http://ascii.io/a/3779)
+
+## How can I help?
+
+Could you port this to zsh?  I'll buy you some cookies or something.
+
+Special thanks to [rileyberton](https://github.com/rileyberton) for adding in the svn status.
