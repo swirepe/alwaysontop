@@ -1,38 +1,59 @@
 export PS1
 export PROMPT_COMMAND
 
-# the colors used here
-COLOR_off='\033[0m' 
-COLOR_BIPurple='\033[1;95m' 
-COLOR_BIYellow='\033[1;93m'
-COLOR_IBlack='\033[0;90m'
-COLOR_BGreen='\033[1;32m'
-COLOR_BRed='\033[1;31m'
 
 
-## the custom indicators
-export ALWAYSONTOP_INDICATOR="\[${COLOR_BIPurple}\]↑↑\[${COLOR_off}\] "
-export AUTOCLEAR_INDICATOR="\[${COLOR_BIYellow}\]◎\[${COLOR_off}\] "
+function _zcurses_init {
+    zmodload zsh/curses
+    zcurses init
+    zcurses addwin aotwin $(tput lines) $(tput cols) 0 0
+    zcurses end
+}
 
-#export ALWAYSONTOP_INDICATOR="^^ "
-#export AUTOCLEAR_INDICATOR="@@ "
+
+
+function _gototop_zsh {
+    
+    zcurses init
+    zcurses move aotwin 0 0
+    zcurses end
+    
+}
+
+
+
+function _gototop_bash {
+    # go to the top of the screen and clear in both directions
+    # zsh seems to have very strong opinions about redrawing all of the screen
+    # when this is called
+    tput cup 0 0 
+    tput el 
+    tput el1
+}
 
 
 
 function alwaysontop {
-    if [ "$ALWAYSONTOP" != "TRUE" ]
+    PS1=`perl -e '$newps1 = $ENV{"PS1"}; $newps1 =~ s/\Q$ENV{"ALWAYSONTOP_INDICATOR"}//; print $newps1'`
+    if [[ "$ALWAYSONTOP" != "TRUE" ]]
     then
-        export ALWAYSONTOP="TRUE"
-        export OLD_PROMPT_COMMAND_AOT="$PROMPT_COMMAND"
-        if [ "$PROMPT_COMMAND" ]
+        if [[ "$SHELL" == *"bash"* ]]
         then
-            # before showing the prompt and doing whatever you're supposed to do
-            # when you do that, go to the top of the screen and clear in both directions
-            PROMPT_COMMAND="$PROMPT_COMMAND ; tput cup 0 0 ; tput el ; tput el1"
+            export ALWAYSONTOP="TRUE"
+            export OLD_PROMPT_COMMAND_AOT="$PROMPT_COMMAND"
+            if [ "$PROMPT_COMMAND" ]
+            then
+                # before showing the prompt and doing whatever you're supposed to do
+                # when you do that, go to the top of the screen and clear in both directions
+                PROMPT_COMMAND="$PROMPT_COMMAND ; _gototop_bash"
+                PROMPT_COMMAND=$(echo $PROMPT_COMMAND | sed -e 's/;\s*;/;/')
+            else
+                PROMPT_COMMAND=" _gototop_bash "
+            fi
         else
-            PROMPT_COMMAND="tput cup 0 0 ; tput el ; tput el1"
+          #  zsh
+          add-zsh-hook precmd _gototop_zsh
         fi
-        
         
         PS1="$ALWAYSONTOP_INDICATOR$PS1"
         #PS1="$PS1"
@@ -43,33 +64,49 @@ function alwaysontop {
 
 
 function unalwaysontop {
-    if [ "$ALWAYSONTOP" == "TRUE"  ]
+    if [[ "$ALWAYSONTOP" == "TRUE"  ]]
     then
-        if [ -n $OLD_PRMOPT_COMMAND_AOT ]
+        if [[ "$SHELL" == *"bash"* ]]
         then
-            PROMPT_COMMAND="$OLD_PRMOPT_COMMAND_AOT"
+            if [ -n $OLD_PRMOPT_COMMAND_AOT ]
+            then
+                PROMPT_COMMAND="$OLD_PRMOPT_COMMAND_AOT"
+            fi
+        else
+            # zsh
+            add-zsh-hook -d precmd _gototop_zsh  
         fi
-        
         ALWAYSONTOP="FALSE"
        
-	# use some perl to remove the indicator, because I suck at sed 
+	   # use some perl to remove the indicator, because I suck at sed 
         PS1=`perl -e '$newps1 = $ENV{"PS1"}; $newps1 =~ s/\Q$ENV{"ALWAYSONTOP_INDICATOR"}//; print $newps1'`
     fi
    
-        echo -e "[alwaysontop.sh] ${COLOR_BIPurple}always on top${COLOR_off} ${COLOR_BRed}OFF${COLOR_off}."
+    echo -e "[alwaysontop.sh] ${COLOR_BIPurple}always on top${COLOR_off} ${COLOR_BRed}OFF${COLOR_off}."
 }
 
 
 function autoclear {
-    if [ "$AUTOCLEAR" != "TRUE" ]
+    if [[ "$AUTOCLEAR" != "TRUE" ]]
     then
         export AUTOCLEAR="TRUE"
         
         # replace the enter key with a form feed (clears the screen) and an enter key
-        bind 'RETURN: "\C-l\C-j"' 
+        if [[ "$SHELL" == *"bash"* ]]
+        then
+            bind 'RETURN: "\C-l\C-j"'
+        else
+            # make a copy of the original accept line, and use our own widget which calls it after clearing the screen
+            zle -A accept-line original-accept-line
+            function accept-line {
+                zle clear-screen
+                zle original-accept-line
+            }
+            zle -N accept-line
+            
+        fi
         PS1="$AUTOCLEAR_INDICATOR$PS1"
         
-        #PS1="$PS1"
     fi
     
     # since we are going to be clearing the screen after every command, might as well have cd also be an ls
@@ -86,7 +123,14 @@ function autoclear {
 
 function unautoclear {
     export AUTOCLEAR="FALSE"
-    bind 'RETURN: "\C-j"'
+    
+    if [[ "$SHELL" == *"bash"* ]]
+    then
+        bind 'RETURN: "\C-j"'
+    else
+        zle -A original-accept-line accept-line
+    fi
+        
     PS1=`perl -e '$newps1 = $ENV{"PS1"}; $newps1 =~ s/\Q$ENV{"AUTOCLEAR_INDICATOR"}//; print $newps1'`
     
     unalias "cd"
@@ -187,12 +231,60 @@ function alwaysontop_help {
 
 
 
+
+COLOR_off='\033[0m' 
+COLOR_BIPurple='\033[1;95m' 
+COLOR_BIYellow='\033[1;93m'
+COLOR_IBlack='\033[0;90m'
+COLOR_BGreen='\033[1;32m'
+COLOR_BRed='\033[1;31m'
+
+
+
+# setup the colors used here for the two shells we support
+if [[ "$SHELL" == *"bash" ]]
+then
+    PROMPT_COLOR_off='\[\033[0m\]' 
+    PROMPT_COLOR_BIPurple='\[\033[1;95m\]' 
+    PROMPT_COLOR_BIYellow='\[\033[1;93m\]'
+    PROMPT_COLOR_IBlack='\[\033[0;90m\]'
+    PROMPT_COLOR_BGreen='\[\033[1;32m\]'
+    PROMPT_COLOR_BRed='\[\033[1;31m\]'
+    
+elif [[ "$SHELL" == *"zsh" ]]
+then
+    autoload -U colors && colors
+    autoload -U add-zsh-hook
+    _zcurses_init
+    
+    PROMPT_COLOR_off='%{$reset_color%}' 
+    PROMPT_COLOR_BIPurple='%{$fg_bold[magenta]%}' 
+    PROMPT_COLOR_BIYellow='%{$fg_bold[yellow]%}'
+    PROMPT_COLOR_IBlack='%{$fg_bold[black]%}'
+    PROMPT_COLOR_BGreen='%{$fg_bold[green]%}'
+    PROMPT_COLOR_BRed='%{$fg_bold[red]%}' 
+    
+else
+    echo "Sorry, only bash and zsh are supported." > /dev/stderr
+    return 1
+fi
+
+
+## the custom indicators
+export ALWAYSONTOP_INDICATOR="${PROMPT_COLOR_BIPurple}↑↑${PROMPT_COLOR_off} "
+export AUTOCLEAR_INDICATOR="${PROMPT_COLOR_BIYellow}◎${PROMPT_COLOR_off} "
+
+#export ALWAYSONTOP_INDICATOR="^^ "
+#export AUTOCLEAR_INDICATOR="@@ "
+
+
+
 if [[ "$BASH_SOURCE" == "$0" ]]
 then
     echo "[alwaysontop.sh] You should source this file." > /dev/stderr
     exit 1
 else
-
+    
     autotop
     echo "    "  
     alwaysontop_help
