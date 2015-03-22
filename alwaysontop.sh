@@ -176,7 +176,11 @@ function cdls {
     DISPLAY_LINES=20
     LSCMD="CLICOLOR_FORCE=1 COLUMNS=$(tput cols) ls -Gp -x "
     DIR="$@"  
-    
+   
+    if [[ "$@" == "" ]]
+    then
+      DIR="$HOME"
+    fi
 
     GIT_CMD="git -c color.status=always status -bs 2>/dev/null"
     SVN_CMD='[[ -d .svn ]] && (
